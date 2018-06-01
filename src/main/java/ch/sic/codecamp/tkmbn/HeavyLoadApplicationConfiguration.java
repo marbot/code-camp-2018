@@ -1,6 +1,8 @@
 package ch.sic.codecamp.tkmbn;
 
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -8,6 +10,9 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import javax.sql.DataSource;
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.serialization.LongSerializer;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.flywaydb.core.Flyway;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,6 +21,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.kafka.core.DefaultKafkaProducerFactory;
+import org.springframework.kafka.core.KafkaTemplate;
 import oracle.ucp.jdbc.PoolDataSource;
 import oracle.ucp.jdbc.PoolDataSourceFactory;
 
@@ -124,6 +131,26 @@ public class HeavyLoadApplicationConfiguration {
     threadPoolExecutor.allowCoreThreadTimeOut(true);
 
     return threadPoolExecutor;
+  }
+
+  @Bean
+  public KafkaTemplate<Long, String> kafkaTemplate(
+      @Value("${kafka.server.configs}") String kafkaServerConfigs,
+      @Value("${kafka.default.topic}") String kafkaDefaultTopic
+
+  ) {
+    Map<String, Object> props = new HashMap<>();
+    props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaServerConfigs);
+    props.put(ProducerConfig.RETRIES_CONFIG, 0);
+    props.put(ProducerConfig.BATCH_SIZE_CONFIG, 16384);
+    props.put(ProducerConfig.LINGER_MS_CONFIG, 1);
+    props.put(ProducerConfig.BUFFER_MEMORY_CONFIG, 33554432);
+    props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, LongSerializer.class);
+    props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+
+    KafkaTemplate<Long, String> kafkaTemplate = new KafkaTemplate<>(new DefaultKafkaProducerFactory<>(props));
+    kafkaTemplate.setDefaultTopic(kafkaDefaultTopic);
+    return kafkaTemplate;
   }
 
 }
