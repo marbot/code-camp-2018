@@ -52,6 +52,7 @@ public class PaymentDao {
       p.addValue("message", payment.getMessage());
       p.addValue("encryptedMessage", payment.getEncryptedMessage());
       parameterSources[i] = p;
+      i++;
     }
 
     this.namedParameterJdbcTemplate.batchUpdate(SQL_INSERT_PAYMENT, parameterSources);

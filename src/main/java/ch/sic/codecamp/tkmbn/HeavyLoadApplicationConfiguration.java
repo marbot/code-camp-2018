@@ -89,4 +89,24 @@ public class HeavyLoadApplicationConfiguration {
     return threadPoolExecutor;
   }
 
+  @Bean
+  public ExecutorService consumerExecutorService(
+      @Value("${payment.consumer.thread.pool.size}") int paymeentConsumerThreadPoolSize
+  ) {
+    BasicThreadFactory threadFactory = new BasicThreadFactory.Builder()
+        .daemon(true)
+        .namingPattern("consumer-%d")
+        .build();
+
+    ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
+        paymeentConsumerThreadPoolSize,
+        paymeentConsumerThreadPoolSize,
+        1L, TimeUnit.MINUTES,
+        new LinkedBlockingQueue<>(),
+        threadFactory);
+    threadPoolExecutor.allowCoreThreadTimeOut(true);
+
+    return threadPoolExecutor;
+  }
+
 }
