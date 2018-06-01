@@ -3,6 +3,7 @@ package ch.sic.codecamp.tkmbn;
 import java.sql.SQLException;
 import java.util.Properties;
 import javax.sql.DataSource;
+import org.flywaydb.core.Flyway;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -47,5 +48,19 @@ public class HeavyLoadApplicationConfiguration {
     } catch (SQLException e) {
       throw new RuntimeException("unable to create oracle pool datasource", e);
     }
+  }
+
+  /**
+   * Override the flyway bean in order to always clean the database on startup.
+   */
+  @Bean
+  public Flyway flyway(DataSource theDataSource) {
+    Flyway flyway = new Flyway();
+    flyway.setDataSource(theDataSource);
+    flyway.setLocations("classpath:db/migration");
+    flyway.clean();
+    flyway.migrate();
+
+    return flyway;
   }
 }
