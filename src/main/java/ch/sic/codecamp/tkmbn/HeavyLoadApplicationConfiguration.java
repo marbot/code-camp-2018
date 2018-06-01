@@ -2,7 +2,12 @@ package ch.sic.codecamp.tkmbn;
 
 import java.sql.SQLException;
 import java.util.Properties;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import javax.sql.DataSource;
+import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 import org.flywaydb.core.Flyway;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
@@ -63,4 +68,25 @@ public class HeavyLoadApplicationConfiguration {
 
     return flyway;
   }
+
+  @Bean
+  public ExecutorService producerExecutorService(
+      @Value("${payment.producer.thread.pool.size}") int paymeentProducerThreadPoolSize
+  ) {
+    BasicThreadFactory threadFactory = new BasicThreadFactory.Builder()
+        .daemon(true)
+        .namingPattern("producer-%d")
+        .build();
+
+    ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
+        paymeentProducerThreadPoolSize,
+        paymeentProducerThreadPoolSize,
+        1L, TimeUnit.MINUTES,
+        new LinkedBlockingQueue<>(),
+        threadFactory);
+    threadPoolExecutor.allowCoreThreadTimeOut(true);
+
+    return threadPoolExecutor;
+  }
+
 }

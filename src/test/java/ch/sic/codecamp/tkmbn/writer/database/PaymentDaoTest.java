@@ -1,4 +1,4 @@
-package ch.sic.codecamp.tkmbn.writer;
+package ch.sic.codecamp.tkmbn.writer.database;
 
 import java.util.Collections;
 import org.junit.Test;
