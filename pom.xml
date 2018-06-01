@@ -16,6 +16,8 @@
     <spring-kafka.version>2.1.6.RELEASE</spring-kafka.version>
     <ojdbc7.version>12.1.0.2.19530366</ojdbc7.version>
     <ucp.version>12.1.0.2</ucp.version>
+    <guava.version>21.0</guava.version>
+    <java-hamcrest.version>2.0.0.0</java-hamcrest.version>
   </properties>
 
   <dependencies>
@@ -44,6 +46,7 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
+      <version>${guava.version}</version>
     </dependency>
 
     <dependency>
@@ -73,6 +76,7 @@
       <groupId>org.hamcrest</groupId>
       <artifactId>java-hamcrest</artifactId>
       <scope>test</scope>
+      <version>${java-hamcrest.version}</version>
     </dependency>
 
     <dependency>
