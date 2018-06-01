@@ -115,7 +115,7 @@ public class HeavyLoadRunner {
     logger.info("waiting for a payment dequeuq to empty...");
     while (!this.paymentDeque.isEmpty()) {
       try {
-        logger.info("still waiting for deque to empty, {} left...", this.paymentDeque.size());
+        logger.info("consuming, buffer size: {}, {} left to generate...", this.paymentDeque.size(), this.paymmentGeneratedCountTotal - this.generatedPaymentCount.get());
         Thread.sleep(300L);
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
