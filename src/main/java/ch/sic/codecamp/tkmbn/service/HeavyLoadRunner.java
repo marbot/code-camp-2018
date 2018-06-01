@@ -62,27 +62,37 @@ public class HeavyLoadRunner {
     Collection<Runnable> producerTasks = createProducerTasks();
 
     logger.info("starting producers...");
-    StopWatch stopWatch = new StopWatch();
-    stopWatch.start();
+    StopWatch totalStopWatch = new StopWatch();
+    totalStopWatch.start();
     for (Runnable producerTask : producerTasks) {
       this.producerExecutorService.execute(producerTask);
     }
 
     waitForPaymentBufferToFill();
-    logger.info("buffered {} payments, took {}", this.paymmentDequeBufferSize, stopWatch);
+    logger.info("buffered {} payments, took {}", this.paymmentDequeBufferSize, totalStopWatch);
 
     Consumer consumer = (Consumer) this.applicationContext.getBean(this.paymentConsumerClass);
 
     Collection<Runnable> consumerTasks = createConsumerTasks(consumer);
 
     logger.info("starting consumers...");
+    StopWatch consumerStopWatch = new StopWatch();
+    consumerStopWatch.start();
     for (Runnable consumerTask : consumerTasks) {
       this.consumerExecutorService.execute(consumerTask);
     }
 
     waitForPaymentDequeToEmpty();
-    stopWatch.stop();
-    logger.info("Done, took {} for {} payments to {}", stopWatch, this.paymmentGeneratedCountTotal, this.paymentConsumerClass);
+
+    // make sure the producers have been able to keep up and the buffer was not emptied too early
+    if (this.generatedPaymentCount.get() != this.paymmentGeneratedCountTotal) {
+      throw new IllegalStateException("The producers have not been able to keep up! They've stopped early after " + this.generatedPaymentCount.get() + " payments.");
+    }
+
+    consumerStopWatch.stop();
+    totalStopWatch.stop();
+    logger.info("Done writing, took {} to write {} payments to {}. Speed: {} payments/sec", consumerStopWatch, this.paymmentGeneratedCountTotal, this.paymentConsumerClass, (float) this.paymmentGeneratedCountTotal / consumerStopWatch.getTime() * 1000);
+    logger.info("Done, took {}", totalStopWatch);
 
   }
 
