@@ -82,7 +82,7 @@ public class HeavyLoadRunner {
 
     waitForPaymentDequeToEmpty();
     stopWatch.stop();
-    logger.info("Done, took {}", this.paymmentDequeBufferSize, stopWatch);
+    logger.info("Done, took {} for {} payments to {}", stopWatch, this.paymmentGeneratedCountTotal, this.paymentConsumerClass);
 
   }
 

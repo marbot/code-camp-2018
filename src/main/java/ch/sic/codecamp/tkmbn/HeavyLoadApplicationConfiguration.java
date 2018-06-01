@@ -9,11 +9,13 @@ import java.util.concurrent.TimeUnit;
 import javax.sql.DataSource;
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 import org.flywaydb.core.Flyway;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import oracle.ucp.jdbc.PoolDataSource;
 import oracle.ucp.jdbc.PoolDataSourceFactory;
 
@@ -21,6 +23,9 @@ import oracle.ucp.jdbc.PoolDataSourceFactory;
 @ComponentScan
 @PropertySource("classpath:application.properties")
 public class HeavyLoadApplicationConfiguration {
+
+  @Autowired
+  private DataSource dataSource;
 
   @Bean
   public DataSource dataSource(
@@ -30,12 +35,14 @@ public class HeavyLoadApplicationConfiguration {
       @Value("${datasource.pool.min.size}") int dataSourcePoolMinSize,
       @Value("${datasource.pool.max.size}") int dataSourcePoolMaxSize,
       @Value("${datasource.pool.initial.size}") int dataSourcePoolInitialSize,
+      @Value("${payment.consumer.batch.size}") int batchSize,
       @Value("${datasource.timeout.inactive-connection.seconds}") int dataSourceTimeoutInactiveConnectionInSeconds,
       @Value("${datasource.timeout.check-interval.seconds}") int dataSourceTimeoutCheckIntervalInSeconds) {
     try {
       Properties connectionProperties = new Properties();
       connectionProperties.setProperty("defaultAutoCommit", "false");
       connectionProperties.setProperty("autoCommit", "false");
+      connectionProperties.setProperty("defaultRowPrefetch", Integer.toString(batchSize));
 
       PoolDataSource poolDataSource = PoolDataSourceFactory.getPoolDataSource();
       poolDataSource.setURL(dataSourceUrl);
@@ -53,6 +60,16 @@ public class HeavyLoadApplicationConfiguration {
     } catch (SQLException e) {
       throw new RuntimeException("unable to create oracle pool datasource", e);
     }
+  }
+
+  @Bean
+  public NamedParameterJdbcTemplate namedParameterJdbcTemplate(
+      @Value("${payment.consumer.batch.size}")
+          int batchSize
+  ) {
+    NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(this.dataSource);
+    namedParameterJdbcTemplate.getJdbcTemplate().setFetchSize(batchSize);
+    return namedParameterJdbcTemplate;
   }
 
   /**
