@@ -23,6 +23,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 @ContextConfiguration(classes = HeavyLoadApplicationConfiguration.class)
 public class PaymentProducerTest {
 
+  public static final long TEN_SECONDS_IN_MILLIS = 10_000L;
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @Autowired
@@ -71,5 +72,6 @@ public class PaymentProducerTest {
     // assert
     assertThat(paymentList, Matchers.hasSize(numberOfPayments));
     logger.info("creating 100000 payments took {}", stopWatch.toString());
+    assertThat(stopWatch.getTime(), is(Matchers.lessThan(TEN_SECONDS_IN_MILLIS)));
   }
 }
