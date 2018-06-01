@@ -28,6 +28,5 @@ public class KafkaConsumer implements Consumer {
       }
       this.kafkaTemplate.sendDefault(payment.getId(), serializedPayment);
     }
-    this.kafkaTemplate.flush();
   }
 }
