@@ -3,9 +3,9 @@ package ch.sic.codecamp.tkmbn.service;
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Deque;
-import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.atomic.AtomicLong;
 import org.apache.commons.lang3.time.StopWatch;
 import org.slf4j.Logger;
@@ -55,7 +55,7 @@ public class HeavyLoadRunner {
 
   private final AtomicLong generatedPaymentCount = new AtomicLong();
 
-  private final Deque<Payment> paymentDeque = new ConcurrentLinkedDeque<>();
+  private final BlockingDeque<Payment> paymentDeque = new LinkedBlockingDeque<>(100_000);
 
   public void run() {
 
@@ -142,7 +142,12 @@ public class HeavyLoadRunner {
 
   private void addGeneratedPaymentsToDeque() {
     do {
-      this.paymentDeque.addLast(this.paymentProducer.produce());
+      try {
+        this.paymentDeque.putLast(this.paymentProducer.produce());
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        throw new RuntimeException(e);
+      }
     }
     while (this.generatedPaymentCount.incrementAndGet() < this.paymmentGeneratedCountTotal);
   }
