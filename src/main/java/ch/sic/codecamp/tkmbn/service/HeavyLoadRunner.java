@@ -55,11 +55,13 @@ public class HeavyLoadRunner {
 
   private final AtomicLong generatedPaymentCount = new AtomicLong();
 
-  private final BlockingDeque<Payment> paymentDeque = new LinkedBlockingDeque<>(100_000);
+  private BlockingDeque<Payment> paymentDeque;
 
   public void run() {
 
     Collection<Runnable> producerTasks = createProducerTasks();
+
+    this.paymentDeque = new LinkedBlockingDeque<>(this.paymmentDequeBufferSize);
 
     logger.info("starting producers...");
     StopWatch totalStopWatch = new StopWatch();
@@ -85,7 +87,7 @@ public class HeavyLoadRunner {
     waitForPaymentDequeToEmpty();
 
     // make sure the producers have been able to keep up and the buffer was not emptied too early
-    if (this.generatedPaymentCount.get() != this.paymmentGeneratedCountTotal) {
+    if (this.generatedPaymentCount.get() < this.paymmentGeneratedCountTotal) {
       throw new IllegalStateException("The producers have not been able to keep up! They've stopped early after " + this.generatedPaymentCount.get() + " payments.");
     }
 

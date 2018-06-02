@@ -136,15 +136,17 @@ public class HeavyLoadApplicationConfiguration {
   @Bean
   public KafkaTemplate<Long, String> kafkaTemplate(
       @Value("${kafka.server.configs}") String kafkaServerConfigs,
-      @Value("${kafka.default.topic}") String kafkaDefaultTopic
-
+      @Value("${kafka.default.topic}") String kafkaDefaultTopic,
+      @Value("${kafka.batch.size}") int kafkaBatchSize,
+      @Value("${kafka.linger.ms}") int kafkaLingerSize,
+      @Value("${kafka.buffer.size}") int kafkaBufferSize
   ) {
     Map<String, Object> props = new HashMap<>();
     props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaServerConfigs);
     props.put(ProducerConfig.RETRIES_CONFIG, 0);
-    props.put(ProducerConfig.BATCH_SIZE_CONFIG, 16384);
-    props.put(ProducerConfig.LINGER_MS_CONFIG, 1);
-    props.put(ProducerConfig.BUFFER_MEMORY_CONFIG, 33554432);
+    props.put(ProducerConfig.BATCH_SIZE_CONFIG, kafkaBatchSize);
+    props.put(ProducerConfig.LINGER_MS_CONFIG, kafkaLingerSize);
+    props.put(ProducerConfig.BUFFER_MEMORY_CONFIG, kafkaBufferSize);
     props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, LongSerializer.class);
     props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
 
