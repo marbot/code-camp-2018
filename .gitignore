@@ -15,6 +15,7 @@
 **/.settings/org.eclipse.mylyn.team.ui.prefs
 **/.jsdtscope
 *.iml
+*.idea
 *.log
 *.log-*
 **/log/
